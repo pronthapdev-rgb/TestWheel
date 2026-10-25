@@ -3,388 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>วงล้อเสี่ยงโชครับรางวัล (Lucky Wheel)</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Lucky Wheel Realtime - วงล้อสุ่มรางวัลเรียลไทม์</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome CDN -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts (Kanit) -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Canvas-Confetti CDN -->
+    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <style>
-        * {
-            font-family: 'Kanit', sans-serif;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0f19',
+                        cardBg: '#151d30',
+                        accentGold: '#fbbf24',
+                        accentPink: '#ec4899',
+                        accentPurple: '#8b5cf6',
+                    },
+                    fontFamily: {
+                        kanit: ['Kanit', 'sans-serif'],
+                    }
+                }
+            }
         }
-        /* Custom scrollbar */
+    </script>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #0b0f19;
+            color: #f8fafc;
+        }
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(21, 29, 48, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
+            background: #0b0f19;
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.5);
-            border-radius: 4px;
+            background: #283553;
+            border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.8);
+            background: #3b4d75;
         }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        /* Wheel Pointer Animation */
+        .pointer-bounce {
+            animation: bounce 0.6s infinite alternate ease-in-out;
         }
-        .glass-modal {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-        /* Wheel pointer pulse animation */
-        @keyframes pointerPulse {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-4px) scale(1.05); }
-        }
-        .pointer-animate {
-            animation: pointerPulse 1.5s infinite ease-in-out;
+        @keyframes bounce {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-5px) scale(1.08); }
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+<body class="min-h-screen flex flex-col justify-between selection:bg-accentPink selection:text-white">
 
     <!-- Header / Navbar -->
-    <header class="w-full glass-panel sticky top-0 z-30 px-4 py-3 shadow-lg">
-        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3">
+    <header class="glass-panel sticky top-0 z-40 px-4 py-3 shadow-2xl border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center space-x-3">
-                <div class="bg-gradient-to-tr from-amber-400 to-indigo-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/30">
-                    <i class="fa-solid font-bold fa-dharmachakra text-2xl text-white animate-spin-slow"></i>
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-pink-500/20">
+                    <i class="fa-solid font-bold fa-dharmachakra text-2xl text-white animate-spin" style="animation-duration: 14s;"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-indigo-200 to-pink-400">
-                        วงล้อเสี่ยงโชครับรางวัล
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-amber-300 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                        LUCKY WHEEL LIVE
                     </h1>
-                    <p class="text-xs text-slate-400 flex items-center gap-1">
-                        <span id="syncStatusBadge" class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span id="syncStatusText">เชื่อมต่อระบบคลาวด์เรียบร้อย</span>
-                    </p>
+                    <p class="text-[11px] text-slate-400">ระบบหมุนสุ่มรางวัลเรียลไทม์ ซิงค์รางวัลคงเหลือทุกเครื่อง</p>
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex items-center gap-2">
-                <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/50" title="เปิด/ปิด เสียง">
-                    <i id="soundIcon" class="fa-solid fa-volume-high text-lg"></i>
-                </button>
-                <button onclick="openGuideModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30 font-medium text-sm flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span class="hidden sm:inline">โฮสติ้งฟรี 100%</span>
-                </button>
-                <button onclick="openAdminModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30 font-medium text-sm flex items-center gap-2 transition-all shadow-lg shadow-indigo-900/20">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>จัดการรางวัล</span>
-                </button>
+            <!-- Room Control Bar -->
+            <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800 w-full sm:w-auto justify-between">
+                <div class="flex items-center gap-2 px-2">
+                    <span id="syncPulse" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-xs text-slate-400 font-medium">ห้องกิจกรรม:</span>
+                    <span id="currentRoomDisplay" class="font-mono text-sm font-bold text-amber-400">MAIN</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="copyRoomLink()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs text-slate-200 font-medium rounded-xl transition border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-regular fa-copy text-amber-400"></i>
+                        <span>แชร์ลิงก์ห้อง</span>
+                    </button>
+                    <button onclick="promptJoinRoom()" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 text-xs text-white font-medium rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-door-open"></i>
+                        <span>เปลี่ยนห้อง</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Section -->
-    <main class="max-w-6xl mx-auto w-full px-4 py-6 flex-1 flex flex-col lg:flex-row gap-8 items-center justify-center">
-
-        <!-- Left / Top Column: Wheel Container -->
-        <div class="flex-1 flex flex-col items-center justify-center w-full max-w-md lg:max-w-lg">
+    <!-- Main Content Grid -->
+    <main class="max-w-7xl mx-auto w-full p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow items-start">
+        
+        <!-- Left Column: Canvas Wheel & Spin Controls -->
+        <section class="lg:col-span-7 flex flex-col items-center justify-center glass-panel rounded-3xl p-4 md:p-6 shadow-2xl relative overflow-hidden min-h-[520px]">
             
-            <!-- Wheel Wrapper -->
-            <div class="relative w-full aspect-square max-w-[380px] sm:max-w-[440px] flex items-center justify-center p-2">
+            <!-- Live Remaining Counter Display Badge -->
+            <div class="w-full flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center gap-2.5 bg-slate-950/80 px-3.5 py-2 rounded-2xl border border-amber-500/30 shadow-inner">
+                    <i class="fa-solid fa-boxes-stacked text-amber-400 text-sm"></i>
+                    <span class="text-xs text-slate-300 font-medium">รางวัลคงเหลือ:</span>
+                    <span id="remainingBigCounter" class="font-mono text-lg font-bold text-amber-400">0</span>
+                    <span class="text-xs text-slate-400">รายการ</span>
+                </div>
+                <div id="statusIndicator" class="text-xs text-slate-400 flex items-center gap-1.5 bg-slate-950/60 px-3 py-1.5 rounded-full border border-slate-800">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span id="syncText">ซิงค์กับคลาวด์สด</span>
+                </div>
+            </div>
+
+            <!-- Wheel Container -->
+            <div class="relative w-full max-w-[460px] aspect-square flex items-center justify-center my-3">
                 
-                <!-- Wheel Outer Glow Ring -->
-                <div class="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500/20 via-indigo-500/20 to-pink-500/20 blur-xl animate-pulse"></div>
-
-                <!-- Wheel Frame Decorative Border -->
-                <div class="relative w-full h-full rounded-full p-3 bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 shadow-2xl border-4 border-slate-700/80 flex items-center justify-center">
-                    
-                    <!-- Decorative Pins -->
-                    <div class="absolute inset-0 rounded-full border-2 border-dashed border-amber-400/40 pointer-events-none"></div>
-
-                    <!-- Canvas Wheel -->
-                    <canvas id="wheelCanvas" class="w-full h-full rounded-full transition-transform ease-out cursor-pointer"></canvas>
-
-                    <!-- Center Spin Button & Hub -->
-                    <button id="spinBtn" onclick="spinWheel()" class="absolute z-10 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 active:scale-95 shadow-2xl border-4 border-slate-900 flex flex-col items-center justify-center text-white font-bold transition-all group duration-200">
-                        <span class="text-xs sm:text-sm uppercase tracking-wider group-hover:scale-110 transition-transform">หมุน!</span>
-                        <i class="fa-solid fa-rotate-right text-xs opacity-80 mt-0.5 group-hover:rotate-180 transition-transform duration-500"></i>
-                    </button>
+                <!-- Wheel Pointer Top Indicator -->
+                <div class="absolute -top-3 z-30 flex flex-col items-center pointer-bounce">
+                    <div class="w-8 h-10 bg-gradient-to-b from-amber-300 to-amber-500 shadow-2xl drop-shadow-[0_4px_12px_rgba(251,191,36,0.8)]" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
                 </div>
 
-                <!-- Top Pointer Indicator -->
-                <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none pointer-animate">
-                    <div class="w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[32px] border-t-amber-400 filter drop-shadow-[0_4px_8px_rgba(245,158,11,0.6)]"></div>
-                </div>
-            </div>
+                <!-- Wheel Canvas -->
+                <canvas id="wheelCanvas" class="w-full h-full drop-shadow-[0_0_30px_rgba(236,72,153,0.2)]"></canvas>
 
-            <!-- Quick Status Info -->
-            <div class="mt-4 text-center">
-                <p id="wheelStatusTip" class="text-sm text-slate-400 bg-slate-900/60 px-4 py-1.5 rounded-full border border-slate-800">
-                    ✨ กดปุ่ม <span class="text-amber-400 font-semibold">"หมุน!"</span> หรือคลิกที่วงล้อเพื่อเริ่มลุ้นรางวัล
-                </p>
-            </div>
-        </div>
-
-        <!-- Right / Bottom Column: Live Prize Inventory -->
-        <div class="w-full lg:w-96 flex flex-col gap-4">
-            <div class="glass-panel rounded-3xl p-5 shadow-xl">
-                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-700/60">
-                    <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-boxes-stacked text-amber-400"></i>
-                        รายการรางวัลคงเหลือ (เรียลไทม์)
-                    </h2>
-                    <span id="totalItemsBadge" class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-medium border border-indigo-500/30">
-                        0 ชิ้น
-                    </span>
-                </div>
-
-                <!-- Prize Stock List Container -->
-                <div id="prizeStockList" class="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
-                    <!-- Dynamic Items render here -->
-                </div>
-
-                <!-- Live Sync Notification Banner -->
-                <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate text-indigo-400 animate-spin"></i>
-                        อัปเดตตรงกันทุกหน้าจอทันที
-                    </span>
-                    <button onclick="openAdminModal()" class="text-amber-400 hover:text-amber-300 hover:underline">
-                        + เพิ่ม/แก้ไข
-                    </button>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-900">
-        <p>ระบบสุ่มรางวัลแบบแชร์คลาวด์เรียบร้อยต่างคนต่างหมุนโดยไม่ต้องรอกัน © 2026</p>
-    </footer>
-
-    <!-- WINNER RESULT MODAL -->
-    <div id="winnerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300">
-        <div class="glass-modal max-w-sm w-full rounded-3xl p-6 text-center shadow-2xl border border-amber-500/30 transform scale-95 transition-all" id="winnerModalCard">
-            <div class="w-20 h-20 bg-gradient-to-tr from-amber-400 to-rose-500 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-amber-500/30 mb-4 animate-bounce">
-                <i class="fa-solid fa-trophy text-3xl text-slate-950"></i>
-            </div>
-            <h3 class="text-sm font-semibold text-amber-400 tracking-wider uppercase mb-1">ยินดีด้วย! คุณได้รับ</h3>
-            <h2 id="winnerTitle" class="text-2xl font-extrabold text-white mb-3">ชื่อรางวัล</h2>
-            <p id="winnerDesc" class="text-sm text-slate-300 mb-6 bg-slate-900/60 py-2 px-3 rounded-xl border border-slate-800">
-                ระบบหักจำนวนรางวัลออกจากคลังส่วนกลางแล้ว
-            </p>
-            <button onclick="closeWinnerModal()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg transition-all active:scale-95">
-                ตกลง / หมุนต่อ
-            </button>
-        </div>
-    </div>
-
-    <!-- ADMIN / MANAGEMENT MODAL -->
-    <div id="adminModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300 overflow-y-auto">
-        <div class="glass-modal max-w-2xl w-full rounded-3xl p-6 shadow-2xl border border-indigo-500/30 my-8">
-            
-            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-700/80">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 bg-indigo-600/30 rounded-xl text-indigo-400 border border-indigo-500/30">
-                        <i class="fa-solid fa-sliders text-xl"></i>
+                <!-- Center Knob & Spin Button -->
+                <button id="spinBtn" onclick="spinWheelLocally()" class="absolute z-20 w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 p-1 shadow-2xl hover:scale-105 active:scale-95 transition-transform duration-200 flex items-center justify-center group focus:outline-none">
+                    <div class="w-full h-full rounded-full bg-slate-950 flex flex-col items-center justify-center border-2 border-amber-300/40 group-hover:border-amber-300 transition">
+                        <i class="fa-solid fa-play text-xl md:text-2xl text-amber-400 group-hover:scale-110 transition ml-1"></i>
+                        <span class="text-[10px] md:text-xs font-bold text-slate-200 mt-0.5 tracking-wider uppercase">หมุนเลย</span>
                     </div>
-                    <div>
-                        <h2 class="text-xl font-bold text-white">แผงควบคุมและจัดการรางวัล</h2>
-                        <p class="text-xs text-slate-400">ตั้งค่ารางวัล สต็อก และโหมดการตัดรางวัล</p>
-                    </div>
-                </div>
-                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white p-2 text-xl">
-                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Global Settings Toggle -->
-            <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 mb-6 space-y-3">
-                <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                    <i class="fa-solid fa-gear"></i> โหมดการหมุนรางวัล
-                </h3>
-                <div class="flex items-center justify-between gap-4">
-                    <div>
-                        <p class="text-sm font-medium text-slate-200">ลบรางวัล/ตัดสต็อกเมื่อถูกสุ่มได้</p>
-                        <p class="text-xs text-slate-400">เมื่อหมุนได้รางวัล สต็อกจะลดลง 1 หากหมดจะถูกลบออกจากวงล้อทันที</p>
+            <!-- Spin Sound Toggle & Status Bar -->
+            <div class="w-full max-w-md mt-3 flex items-center justify-between px-4 py-2.5 bg-slate-950/60 rounded-2xl border border-slate-800">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-volume-high text-amber-400 text-sm"></i>
+                    <span class="text-xs text-slate-300 font-medium">เสียงเอฟเฟกต์หมุนวงล้อ</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="soundToggle" checked class="sr-only peer">
+                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-amber-500 peer-checked:to-pink-500"></div>
+                </label>
+            </div>
+        </section>
+
+        <!-- Right Column: Settings, Items & Winner History Log -->
+        <section class="lg:col-span-5 space-y-6">
+            
+            <!-- Items Management Card -->
+            <div class="glass-panel rounded-3xl p-5 shadow-xl border border-slate-800">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-pink-400"></i>
+                        <h2 class="font-bold text-slate-100 text-base">รายการของรางวัล</h2>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                        <input type="checkbox" id="deductStockToggle" class="sr-only peer" onchange="toggleDeductStock(this.checked)">
-                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    <span id="itemCountBadge" class="bg-purple-950/80 text-purple-300 border border-purple-500/30 text-xs px-2.5 py-0.5 rounded-full font-mono">0 รายการ</span>
+                </div>
+
+                <!-- Tab Buttons: Edit Mode vs Live Remaining Items List -->
+                <div class="flex border-b border-slate-800 mb-3 text-xs font-medium">
+                    <button id="tabListBtn" onclick="switchRightTab('list')" class="py-2.5 px-3 border-b-2 border-pink-500 text-pink-400 font-bold flex items-center gap-1.5 focus:outline-none">
+                        <i class="fa-solid fa-boxes-packing"></i>
+                        <span>รายการคงเหลืออยู่</span>
+                    </button>
+                    <button id="tabEditBtn" onclick="switchRightTab('edit')" class="py-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 focus:outline-none">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>แก้ไขข้อมูล (Text)</span>
+                    </button>
+                </div>
+
+                <!-- Remaining Items Live List Container -->
+                <div id="tabListContent">
+                    <div id="remainingItemsList" class="max-h-56 overflow-y-auto space-y-2 pr-1">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+
+                <!-- Textarea Entries Container -->
+                <div id="tabEditContent" class="hidden">
+                    <textarea id="itemsTextarea" rows="6" onchange="handleTextareaChange()" class="w-full bg-slate-950/90 border border-slate-800 rounded-2xl p-3 text-sm text-slate-200 focus:outline-none focus:border-pink-500 transition font-sans resize-y leading-relaxed" placeholder="กรอกรายชื่อรางวัล หรือชื่อผู้โชคดี... (1 บรรทัดต่อ 1 รายการ)"></textarea>
+
+                    <!-- Action Controls -->
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button onclick="shuffleItems()" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs text-slate-200 font-medium rounded-xl transition border border-slate-700 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-shuffle text-purple-400"></i>
+                            <span>สลับรายการ</span>
+                        </button>
+                        <button onclick="resetItemsDefault()" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs text-slate-200 font-medium rounded-xl transition border border-slate-700 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-left text-amber-400"></i>
+                            <span>รีเซ็ตค่าเริ่มต้น</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Auto Remove Toggle Switch -->
+                <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-trash-can text-rose-400 text-sm"></i>
+                        <div>
+                            <p class="text-xs font-medium text-slate-200">ตัดรางวัลที่สุ่มได้ออกอัตโนมัติ</p>
+                            <p class="text-[10px] text-slate-400">เมื่อมีผู้ชนะ จะลบออกจากระบบเรียลไทม์ทันที</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="autoRemoveToggle" onchange="toggleAutoRemove()" class="sr-only peer">
+                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-500"></div>
                     </label>
                 </div>
             </div>
 
-            <!-- Form: Add New Prize -->
-            <form id="addPrizeForm" onsubmit="handleAddPrize(event)" class="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/80 mb-6">
-                <h3 class="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-plus-circle text-emerald-400"></i> เพิ่มรางวัลใหม่
-                </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                    <div class="sm:col-span-5">
-                        <label class="block text-xs text-slate-400 mb-1">ชื่อรางวัล</label>
-                        <input type="text" id="newPrizeName" required placeholder="เช่น iPhone 15, ส่วนลด 50%" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+            <!-- History Winner Log Card -->
+            <div class="glass-panel rounded-3xl p-5 shadow-xl border border-slate-800">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-400"></i>
+                        <h2 class="font-bold text-slate-100 text-base">ประวัติการได้รับรางวัล</h2>
                     </div>
-                    <div class="sm:col-span-3">
-                        <label class="block text-xs text-slate-400 mb-1">จำนวน (ชิ้น)</label>
-                        <input type="number" id="newPrizeStock" required min="1" value="5" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs text-slate-400 mb-1">สีช่อง</label>
-                        <input type="color" id="newPrizeColor" value="#6366f1" class="w-full h-9 bg-slate-950 border border-slate-700 rounded-xl cursor-pointer p-1">
-                    </div>
-                    <div class="sm:col-span-2 flex items-end">
-                        <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition-all">
-                            บันทึก
-                        </button>
-                    </div>
+                    <button onclick="clearHistory()" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                        <span>ล้างประวัติ</span>
+                    </button>
                 </div>
-            </form>
 
-            <!-- Prize List Table -->
-            <div class="space-y-2 max-h-60 overflow-y-auto mb-6 pr-1">
-                <h3 class="text-sm font-bold text-slate-300 mb-2">รายการรางวัลในระบบ</h3>
-                <div id="adminPrizeTable" class="space-y-2">
-                    <!-- Dynamic rendering -->
+                <!-- History List Box -->
+                <div id="historyContainer" class="max-h-48 overflow-y-auto space-y-2 pr-1">
+                    <div class="text-center py-6 text-slate-500 text-xs italic">
+                        ยังไม่มีประวัติการได้รับรางวัล
+                    </div>
                 </div>
             </div>
+        </section>
+    </main>
 
-            <!-- Footer Reset Controls -->
-            <div class="flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-slate-800">
-                <button onclick="resetDefaultPrizes()" class="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-semibold transition-all">
-                    <i class="fa-solid fa-rotate-left mr-1"></i> รีเซ็ตกลับค่าเริ่มต้น
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-500 border-t border-slate-900">
+        <p>Lucky Wheel Live System &copy; 2026 - Realtime Dynamic Wheel of Names</p>
+    </footer>
+
+    <!-- Modal Winner Notification -->
+    <div id="winnerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+        <div id="winnerModalContent" class="bg-gradient-to-b from-slate-900 to-slate-950 border border-amber-500/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center transform scale-90 transition-all duration-300 relative overflow-hidden">
+            
+            <!-- Top Glowing Accent -->
+            <div class="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/20 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl"></div>
+
+            <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-3xl animate-bounce">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            
+            <p class="text-xs uppercase tracking-widest text-amber-400 font-semibold mb-1">ยินดีด้วย! ผลการสุ่มคือ</p>
+            <h3 id="winnerTitle" class="text-2xl font-extrabold text-white my-3 break-words bg-gradient-to-r from-amber-200 via-pink-200 to-amber-400 bg-clip-text text-transparent">
+                ---
+            </h3>
+            
+            <div class="flex flex-col gap-2.5 mt-6">
+                <button id="modalRemoveBtn" onclick="confirmRemoveWinner()" class="w-full py-2.5 px-4 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 active:scale-95 text-xs text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>ลบรางวัลนี้ออกจากระบบทุกเครื่อง</span>
                 </button>
-                <button onclick="closeAdminModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all">
-                    ปิดหน้าต่าง
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- FREE DEPLOYMENT GUIDE MODAL -->
-    <div id="guideModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300 overflow-y-auto">
-        <div class="glass-modal max-w-3xl w-full rounded-3xl p-6 md:p-8 shadow-2xl border border-emerald-500/30 my-8">
-            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-700/80">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-emerald-600/30 rounded-2xl text-emerald-400 border border-emerald-500/30">
-                        <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl md:text-2xl font-bold text-white">คำแนะนำการนำไปใช้งานฟรี 100% (Hosting Guide)</h2>
-                        <p class="text-xs text-emerald-400/80">นำเว็บนี้ไปเผยแพร่ออนไลนและแชร์ให้เพื่อนเล่นได้ฟรี ไม่มีค่าใช้จ่าย</p>
-                    </div>
-                </div>
-                <button onclick="closeGuideModal()" class="text-slate-400 hover:text-white p-2 text-xl">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="space-y-6 text-slate-300 text-sm">
-                <!-- Method 1: GitHub Pages -->
-                <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-                    <h3 class="text-base font-bold text-amber-400 flex items-center gap-2 mb-2">
-                        <i class="fa-brands fa-github text-lg"></i> วิธีที่ 1: GitHub Pages (แนะนำที่สุด - ง่ายและฟรีถาวร)
-                    </h3>
-                    <ol class="list-decimal list-inside space-y-1.5 text-slate-300 text-xs sm:text-sm pl-2">
-                        <li>บันทึกไฟล์นี้เป็นชื่อ <code class="bg-slate-950 text-indigo-300 px-2 py-0.5 rounded border border-slate-800">index.html</code></li>
-                        <li>สร้าง Repository ใหม่บน <a href="https://github.com" target="_blank" class="text-indigo-400 underline">GitHub.com</a> (ตั้งค่าเป็น Public)</li>
-                        <li>อัปโหลดไฟล์ <code class="bg-slate-950 text-indigo-300 px-2 py-0.5 rounded border border-slate-800">index.html</code> ขึ้น Repository</li>
-                        <li>ไปที่ <strong class="text-white">Settings &gt; Pages</strong> เลือก Branch เป็น <strong class="text-white">main / master</strong> แล้วกด <strong class="text-white">Save</strong></li>
-                        <li>คุณจะได้ลิงก์เว็บไซต์ฟรีทันที (เช่น <code class="text-emerald-400">https://yourusername.github.io/wheel</code>)</li>
-                    </ol>
-                </div>
-
-                <!-- Method 2: Vercel / Netlify -->
-                <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-                    <h3 class="text-base font-bold text-indigo-400 flex items-center gap-2 mb-2">
-                        <i class="fa-solid fa-bolt text-lg"></i> วิธีที่ 2: Vercel หรือ Netlify (ลากวางไฟล์เสร็จใน 30 วินาที)
-                    </h3>
-                    <ul class="list-disc list-inside space-y-1.5 text-slate-300 text-xs sm:text-sm pl-2">
-                        <li>สมัครสมาชิกฟรีที่ <a href="https://netlify.com" target="_blank" class="text-indigo-400 underline">Netlify.com</a> หรือ <a href="https://vercel.com" target="_blank" class="text-indigo-400 underline">Vercel.com</a></li>
-                        <li>ลากโฟลเดอร์ที่มีไฟล์ <code class="bg-slate-950 text-indigo-300 px-2 py-0.5 rounded border border-slate-800">index.html</code> วางในหน้า Deploy</li>
-                        <li>รับ URL เว็บไซต์ฟรีพร้อม SSL (HTTPS) ใช้งานได้ทันที</li>
-                    </ul>
-                </div>
-
-                <!-- Method 3: Firebase Central Backend Explanation -->
-                <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-                    <h3 class="text-base font-bold text-pink-400 flex items-center gap-2 mb-2">
-                        <i class="fa-solid fa-database text-lg"></i> การเชื่อมต่อฐานข้อมูลแชร์สต็อกเรียลไทม์ (Firebase)
-                    </h3>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-2">
-                        แอพนี้ถูกออกแบบให้ทำงานผ่าน **Firebase Firestore Cloud Storage** ในตัวเรียบร้อยแล้ว ทุกเครื่องที่เปิดลิงก์พร้อมกันจะดึงข้อมูลรางวัลและจำนวนคงเหลือจากชุดเดียวกัน และอัปเดตสต็อกเรียลไทม์โดยอัตโนมัติเมื่อมีคนหมุนได้รางวัล!
-                    </p>
-                </div>
-            </div>
-
-            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end">
-                <button onclick="closeGuideModal()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl shadow-lg transition-all">
-                    เข้าใจแล้ว ปิดหน้าต่าง
+                <button onclick="closeWinnerModal()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs text-slate-300 font-medium rounded-xl transition border border-slate-700">
+                    เก็บไว้ในวงล้อต่อ
                 </button>
             </div>
         </div>
     </div>
 
-
-    <!-- FIREBASE SDK & APP LOGIC -->
+    <!-- Firebase Realtime Engine -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            setDoc, 
-            updateDoc, 
-            onSnapshot,
-            runTransaction
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { 
-            getAuth, 
-            signInAnonymously, 
-            signInWithCustomToken, 
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // APP CONFIG & STATE
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'lucky-wheel-app-demo';
+        // Global Firebase Configuration
         const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
+            ? JSON.parse(__firebase_config)
             : {
-                apiKey: "demo-api-key",
-                authDomain: "demo.firebaseapp.com",
-                projectId: "demo-project",
-                storageBucket: "demo.appspot.com",
-                messagingSenderId: "123456789",
-                appId: "1:123456789:web:demo"
+                apiKey: "AIzaSyDemoConfigKeyForWheelAppDoc",
+                authDomain: "demo-wheel-app.firebaseapp.com",
+                projectId: "demo-wheel-app",
+                storageBucket: "demo-wheel-app.appspot.com",
+                messagingSenderId: "1234567890",
+                appId: "1:1234567890:web:abcdef123456"
             };
 
-        // Firebase Initialization
-        let app, db, auth;
-        let isFirebaseAvailable = false;
-        let currentUserId = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'lucky-wheel-realtime';
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Shared Application Data State
-        let prizes = [];
-        let deductStockOnWin = true;
+        // App State
+        let currentRoomId = 'MAIN';
         let isSpinning = false;
-        let soundEnabled = true;
+        let wheelItems = ["รางวัลที่ 1: iPhone 16 Pro", "รางวัลที่ 2: iPad Air", "รางวัลที่ 3: AirPods Max", "บัตรของขวัญ 1,000 บาท", "บัตรของขวัญ 500 บาท", "แก้วน้ำส่วนตัว", "คูปองส่วนลด 20%", "โชคดีครั้งหน้า"];
+        let winnerHistory = [];
+        let autoRemove = false;
+        let lastWinnerIndex = -1;
+        let startAngle = 0;
 
-        // Canvas & Animation Variables
-        let canvas, ctx;
-        let currentAngle = 0; // In radians
+        // Colors palette for wheel slices
+        const sliceColors = [
+            '#f43f5e', '#ec4899', '#d946ef', '#a855f7', 
+            '#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', 
+            '#06b6d4', '#14b8a6', '#10b981', '#84cc16', 
+            '#eab308', '#f97316'
+        ];
 
-        // Sound Effects via Web Audio API
+        // Web Audio Synthesizer
         let audioCtx = null;
-
         function initAudio() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -392,15 +331,15 @@
         }
 
         function playTickSound() {
-            if (!soundEnabled) return;
+            if (!document.getElementById('soundToggle').checked) return;
             try {
                 initAudio();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.04);
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(650, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(130, audioCtx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
@@ -409,148 +348,130 @@
             } catch (e) {}
         }
 
-        function playWinFanfare() {
-            if (!soundEnabled) return;
+        function playFanfareSound() {
+            if (!document.getElementById('soundToggle').checked) return;
             try {
                 initAudio();
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                const notes = [261.63, 329.63, 392.00, 523.25];
                 notes.forEach((freq, idx) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.value = freq;
-                    const startTime = audioCtx.currentTime + (idx * 0.1);
-                    gain.gain.setValueAtTime(0.2, startTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.08);
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime + idx * 0.08);
+                    gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + idx * 0.08 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.08 + 0.4);
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
-                    osc.start(startTime);
-                    osc.stop(startTime + 0.3);
+                    osc.start(audioCtx.currentTime + idx * 0.08);
+                    osc.stop(audioCtx.currentTime + idx * 0.08 + 0.4);
                 });
             } catch (e) {}
         }
 
-        // DEFAULT FALLBACK PRIZES
-        const defaultPrizes = [
-            { id: '1', name: 'รางวัลใหญ่ 1,000 บาท', stock: 2, color: '#f59e0b' },
-            { id: '2', name: 'คูปองส่วนลด 50%', stock: 10, color: '#6366f1' },
-            { id: '3', name: 'แก้วน้ำพรีเมียม', stock: 5, color: '#ec4899' },
-            { id: '4', name: 'ส่วนลด 20 บาท', stock: 20, color: '#10b981' },
-            { id: '5', name: 'หมอนผ้าห่ม mascot', stock: 3, color: '#8b5cf6' },
-            { id: '6', name: 'โชคดีครั้งหน้า (ขอบคุณ)', stock: 50, color: '#64748b' }
-        ];
-
-        // STARTUP INITIALIZATION
+        // Window Load & Firebase Auth Init
         window.addEventListener('load', async () => {
-            canvas = document.getElementById('wheelCanvas');
-            ctx = canvas.getContext('2d');
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomParam = urlParams.get('room');
+            if (roomParam) {
+                currentRoomId = roomParam.trim().toUpperCase();
+            }
+            document.getElementById('currentRoomDisplay').innerText = currentRoomId;
 
-            // Initialize Firebase
             try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // Authenticate
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-
-                currentUserId = auth.currentUser ? auth.currentUser.uid : 'anonymous';
-                isFirebaseAvailable = true;
-                setupFirestoreSync();
             } catch (err) {
-                console.warn('Firebase sync warning, running in local fallback mode:', err);
-                isFirebaseAvailable = false;
-                document.getElementById('syncStatusBadge').className = "inline-block w-2 h-2 rounded-full bg-amber-400";
-                document.getElementById('syncStatusText').textContent = "โหมดในเครื่อง (Local Mode)";
-                prizes = [...defaultPrizes];
-                renderAppUI();
+                console.warn("Auth initialization fallback.", err);
             }
+
+            setupCanvas();
+            subscribeToRoomData();
         });
 
-        function resizeCanvas() {
-            if (!canvas) return;
-            const parent = canvas.parentElement;
-            const size = Math.min(parent.clientWidth - 16, 440);
-            canvas.width = size * window.devicePixelRatio;
-            canvas.height = size * window.devicePixelRatio;
-            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-            drawWheel();
+        function getRoomDocRef() {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
         }
 
-        // FIRESTORE REALTIME SYNC (RULE 1 & RULE 2 SAFE)
-        function setupFirestoreSync() {
-            if (!db) return;
-            // Public Document Path following RULE 1
-            const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'wheel_config', 'main');
+        let unsubscribeRoom = null;
+        function subscribeToRoomData() {
+            if (unsubscribeRoom) unsubscribeRoom();
+            const roomRef = getRoomDocRef();
 
-            onSnapshot(configDocRef, (snapshot) => {
+            unsubscribeRoom = onSnapshot(roomRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.data();
-                    prizes = data.prizes || [];
-                    deductStockOnWin = data.deductStock !== undefined ? data.deductStock : true;
+                    if (data.items) {
+                        wheelItems = data.items;
+                        document.getElementById('itemsTextarea').value = wheelItems.join('\n');
+                        document.getElementById('itemCountBadge').innerText = `${wheelItems.length} รายการ`;
+                        document.getElementById('remainingBigCounter').innerText = wheelItems.length;
+                        renderRemainingListUI();
+                        if (!isSpinning) {
+                            drawWheel();
+                        }
+                    }
+                    if (data.history) {
+                        winnerHistory = data.history;
+                        renderHistoryUI();
+                    }
+                    if (data.autoRemove !== undefined) {
+                        autoRemove = data.autoRemove;
+                        document.getElementById('autoRemoveToggle').checked = autoRemove;
+                    }
                 } else {
-                    // Seed initial data
-                    const initialData = {
-                        prizes: defaultPrizes,
-                        deductStock: true,
-                        updatedAt: new Date().toISOString()
-                    };
-                    setDoc(configDocRef, initialData);
-                    prizes = defaultPrizes;
-                    deductStockOnWin = true;
+                    saveRoomDataToCloud({
+                        items: wheelItems,
+                        history: [],
+                        autoRemove: false
+                    });
                 }
-
-                // Update UI & Wheel Redraw
-                document.getElementById('deductStockToggle').checked = deductStockOnWin;
-                renderAppUI();
             }, (error) => {
                 console.error("Firestore sync error:", error);
-                document.getElementById('syncStatusBadge').className = "inline-block w-2 h-2 rounded-full bg-rose-500";
-                document.getElementById('syncStatusText').textContent = "เชื่อมต่อติดขัด (ใช้ข้อมูลชั่วคราว)";
             });
         }
 
-        // SAVE DATA TO FIRESTORE / LOCAL
-        async function saveConfigToCloud(newPrizes, newDeductState) {
-            prizes = newPrizes;
-            if (newDeductState !== undefined) deductStockOnWin = newDeductState;
-
-            renderAppUI();
-
-            if (isFirebaseAvailable && db) {
-                try {
-                    const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'wheel_config', 'main');
-                    await setDoc(configDocRef, {
-                        prizes: prizes,
-                        deductStock: deductStockOnWin,
-                        updatedAt: new Date().toISOString()
-                    }, { merge: true });
-                } catch (e) {
-                    console.error("Failed to save state to Firestore:", e);
-                }
+        async function saveRoomDataToCloud(dataToUpdate) {
+            const roomRef = getRoomDocRef();
+            try {
+                await setDoc(roomRef, dataToUpdate, { merge: true });
+            } catch (err) {
+                console.error("Error updating room data:", err);
             }
         }
 
-        // DRAW CANVAS WHEEL
+        // Canvas Drawing Logic
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function setupCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            drawWheel();
+        }
+
+        window.addEventListener('resize', setupCanvas);
+
         function drawWheel() {
-            if (!canvas || !ctx) return;
-            const size = canvas.width / window.devicePixelRatio;
-            const center = size / 2;
-            const radius = center - 10;
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(centerX, centerY) - 14;
 
-            ctx.clearRect(0, 0, size, size);
+            ctx.clearRect(0, 0, width, height);
 
-            if (prizes.length === 0) {
-                // Empty Wheel State
+            if (wheelItems.length === 0) {
                 ctx.beginPath();
-                ctx.arc(center, center, radius, 0, Math.PI * 2);
-                ctx.fillStyle = '#1e293b';
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#151d30';
                 ctx.fill();
                 ctx.strokeStyle = '#334155';
                 ctx.lineWidth = 4;
@@ -560,239 +481,84 @@
                 ctx.font = 'bold 16px Kanit';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText('ไม่มีรางวัลในคลัง', center, center);
+                ctx.fillText('ไม่มีรางวัลคงเหลือในระบบ', centerX, centerY);
                 return;
             }
 
-            const sliceAngle = (Math.PI * 2) / prizes.length;
+            const numSlices = wheelItems.length;
+            const sliceAngle = (2 * Math.PI) / numSlices;
 
-            prizes.forEach((prize, index) => {
-                const startAngle = currentAngle + (index * sliceAngle);
-                const endAngle = startAngle + sliceAngle;
-
-                // Slice Fill
+            for (let i = 0; i < numSlices; i++) {
+                const angle = startAngle + i * sliceAngle;
                 ctx.beginPath();
-                ctx.moveTo(center, center);
-                ctx.arc(center, center, radius, startAngle, endAngle);
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + sliceAngle);
                 ctx.closePath();
-                ctx.fillStyle = prize.color || '#6366f1';
-                ctx.fill();
 
-                // Slice Border
-                ctx.strokeStyle = 'rgba(15, 23, 42, 0.4)';
+                ctx.fillStyle = sliceColors[i % sliceColors.length];
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(11, 15, 25, 0.4)';
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Draw Text & Stock Tag
                 ctx.save();
-                ctx.translate(center, center);
-                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle + sliceAngle / 2);
                 ctx.textAlign = 'right';
-                ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 14px Kanit';
-
-                // Shadow for text contrast
+                ctx.font = '600 13px Kanit';
                 ctx.shadowColor = 'rgba(0,0,0,0.6)';
                 ctx.shadowBlur = 4;
 
-                const displayName = prize.name.length > 14 ? prize.name.substring(0, 12) + '...' : prize.name;
-                const textDistance = radius - 24;
-                
-                ctx.fillText(displayName, textDistance, 0);
-
-                if (deductStockOnWin && prize.stock !== undefined) {
-                    ctx.font = '11px Kanit';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-                    ctx.fillText(`(เหลือ ${prize.stock})`, textDistance, 18);
-                }
-
+                let text = wheelItems[i];
+                if (text.length > 18) text = text.substring(0, 16) + '...';
+                ctx.fillText(text, radius - 18, 5);
                 ctx.restore();
-            });
+            }
 
-            // Outer ring accent
             ctx.beginPath();
-            ctx.arc(center, center, radius, 0, Math.PI * 2);
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 4;
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = '#fbbf24';
             ctx.stroke();
         }
 
-        // RENDER LIVE INVENTORY AND ADMIN TABLES
-        function renderAppUI() {
-            drawWheel();
-
-            // 1. Render Inventory List
-            const prizeStockList = document.getElementById('prizeStockList');
-            const totalItemsBadge = document.getElementById('totalItemsBadge');
-            
-            let totalStock = 0;
-            prizeStockList.innerHTML = '';
-
-            if (prizes.length === 0) {
-                prizeStockList.innerHTML = `<div class="text-center py-6 text-slate-500 text-sm">ยังไม่มีรางวัลในระบบ</div>`;
-                totalItemsBadge.textContent = `0 ชิ้น`;
-            } else {
-                prizes.forEach((p) => {
-                    const count = p.stock || 0;
-                    totalStock += count;
-
-                    const itemEl = document.createElement('div');
-                    itemEl.className = "flex items-center justify-between p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all";
-                    itemEl.innerHTML = `
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <span class="w-4 h-4 rounded-full flex-shrink-0 border border-white/20" style="background-color: ${p.color}"></span>
-                            <span class="text-sm text-slate-200 font-medium truncate">${p.name}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold px-2.5 py-1 rounded-xl ${count > 0 ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
-                                ${deductStockOnWin ? `เหลือ ${count} ชิ้น` : 'ไม่จำกัด'}
-                            </span>
-                        </div>
-                    `;
-                    prizeStockList.appendChild(itemEl);
-                });
-                totalItemsBadge.textContent = deductStockOnWin ? `${totalStock} ชิ้น` : `${prizes.length} รายการ`;
-            }
-
-            // 2. Render Admin Table
-            const adminTable = document.getElementById('adminPrizeTable');
-            adminTable.innerHTML = '';
-
-            prizes.forEach((p, idx) => {
-                const row = document.createElement('div');
-                row.className = "flex items-center justify-between gap-2 p-3 bg-slate-950/80 rounded-xl border border-slate-800";
-                row.innerHTML = `
-                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <input type="color" value="${p.color}" onchange="window.updatePrizeColor(${idx}, this.value)" class="w-6 h-6 rounded border-0 cursor-pointer bg-transparent">
-                        <span class="text-sm font-medium text-slate-200 truncate">${p.name}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="flex items-center gap-1 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800">
-                            <span class="text-xs text-slate-400">สต็อก:</span>
-                            <input type="number" min="1" value="${p.stock}" onchange="window.updatePrizeStock(${idx}, this.value)" class="w-14 bg-transparent text-center text-xs font-bold text-amber-400 focus:outline-none">
-                        </div>
-                        <button onclick="window.deletePrize(${idx})" class="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-all" title="ลบ">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
-                        </button>
-                    </div>
-                `;
-                adminTable.appendChild(row);
-            });
-        }
-
-        // SPIN WHEEL LOGIC (INDEPENDENT SPIN & ATOMIC CLAIM)
-        window.spinWheel = async function() {
-            if (isSpinning) return;
-            if (prizes.length === 0) {
-                alert('ยังไม่มีรายการรางวัลในระบบ');
-                return;
-            }
+        // Independent Local Spin Logic per device
+        window.spinWheelLocally = function() {
+            if (isSpinning || wheelItems.length === 0) return;
+            initAudio();
 
             isSpinning = true;
             document.getElementById('spinBtn').disabled = true;
-            document.getElementById('spinBtn').classList.add('opacity-50', 'cursor-not-allowed');
 
-            let winningIndex = 0;
-            let winningPrize = null;
+            const targetIndex = Math.floor(Math.random() * wheelItems.length);
+            lastWinnerIndex = targetIndex;
+            const duration = 4500 + Math.random() * 1000;
 
-            // ATOMIC STOCK CLAIM OR RANDOM SELECTION
-            if (isFirebaseAvailable && db && deductStockOnWin) {
-                const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'wheel_config', 'main');
-                try {
-                    await runTransaction(db, async (transaction) => {
-                        const sfDoc = await transaction.get(configDocRef);
-                        if (!sfDoc.exists()) throw "Document does not exist!";
-                        
-                        const currentPrizes = sfDoc.data().prizes || [];
-                        if (currentPrizes.length === 0) throw "No prizes available!";
-
-                        // Select winner randomly based on remaining stock
-                        const candidateIndices = [];
-                        currentPrizes.forEach((p, idx) => {
-                            if (p.stock > 0) candidateIndices.push(idx);
-                        });
-
-                        if (candidateIndices.length === 0) {
-                            winningIndex = Math.floor(Math.random() * currentPrizes.length);
-                            winningPrize = currentPrizes[winningIndex];
-                            return;
-                        }
-
-                        winningIndex = candidateIndices[Math.floor(Math.random() * candidateIndices.length)];
-                        winningPrize = currentPrizes[winningIndex];
-
-                        // Deduct stock centrally
-                        currentPrizes[winningIndex].stock -= 1;
-
-                        // If stock hits 0, remove prize slice immediately
-                        if (currentPrizes[winningIndex].stock <= 0) {
-                            currentPrizes.splice(winningIndex, 1);
-                        }
-
-                        transaction.update(configDocRef, { prizes: currentPrizes });
-                    });
-                } catch (e) {
-                    console.warn("Transaction fallback:", e);
-                    winningIndex = Math.floor(Math.random() * prizes.length);
-                    winningPrize = prizes[winningIndex];
-                }
-            } else {
-                // Local calculation
-                winningIndex = Math.floor(Math.random() * prizes.length);
-                winningPrize = prizes[winningIndex];
-
-                if (deductStockOnWin && winningPrize) {
-                    winningPrize.stock -= 1;
-                    if (winningPrize.stock <= 0) {
-                        prizes.splice(winningIndex, 1);
-                    }
-                    saveConfigToCloud([...prizes], deductStockOnWin);
-                }
-            }
-
-            if (!winningPrize) {
-                isSpinning = false;
-                document.getElementById('spinBtn').disabled = false;
-                document.getElementById('spinBtn').classList.remove('opacity-50', 'cursor-not-allowed');
-                return;
-            }
-
-            // CALCULATION OF ANIMATION TARGET ANGLE
-            // Pointer is at TOP (3 * Math.PI / 2 or -90 deg)
-            const sliceAngle = (Math.PI * 2) / prizes.length;
-            // Angle needed to land segment under pointer
-            const targetSegmentCenter = (winningIndex * sliceAngle) + (sliceAngle / 2);
+            const numSlices = wheelItems.length;
+            const sliceAngle = (2 * Math.PI) / numSlices;
             
-            // Pointer position offset
-            const pointerAngle = (3 * Math.PI) / 2; 
+            const targetSliceCenter = targetIndex * sliceAngle + sliceAngle / 2;
+            let targetFinalAngle = (1.5 * Math.PI) - targetSliceCenter;
             
-            // Calculate relative offset for rotation
-            let targetRotation = pointerAngle - targetSegmentCenter;
-            
-            // Add full multi-rotations (5 full spins = 10 * Math.PI)
-            const extraRounds = 5 + Math.floor(Math.random() * 3);
-            const totalRotationDelta = (extraRounds * Math.PI * 2) + ((targetRotation - (currentAngle % (Math.PI * 2)) + Math.PI * 4) % (Math.PI * 2));
+            const extraRounds = (5 + Math.floor(Math.random() * 3)) * (2 * Math.PI);
+            const totalTargetRotation = startAngle + extraRounds + ((targetFinalAngle - (startAngle % (2 * Math.PI)) + 4 * Math.PI) % (2 * Math.PI));
 
-            const startAngle = currentAngle;
-            const endAngle = startAngle + totalRotationDelta;
-
-            const duration = 4500; // 4.5 seconds
             const startTime = performance.now();
-            let lastTickAngle = startAngle;
+            const initialAngle = startAngle;
+            let lastTickSlice = -1;
 
-            function animateSpin(currentTime) {
-                const elapsed = currentTime - startTime;
+            function animateSpin(now) {
+                const elapsed = now - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-
-                // Cubic Ease-Out
+                
                 const easeOut = 1 - Math.pow(1 - progress, 3);
-                currentAngle = startAngle + (endAngle - startAngle) * easeOut;
-
-                // Play tick sound when crossing segment threshold
-                if (Math.abs(currentAngle - lastTickAngle) >= sliceAngle) {
+                startAngle = initialAngle + (totalTargetRotation - initialAngle) * easeOut;
+                
+                const currentSliceIndex = Math.floor(((1.5 * Math.PI - startAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) / sliceAngle);
+                if (currentSliceIndex !== lastTickSlice) {
                     playTickSound();
-                    lastTickAngle = currentAngle;
+                    lastTickSlice = currentSliceIndex;
                 }
 
                 drawWheel();
@@ -800,131 +566,205 @@
                 if (progress < 1) {
                     requestAnimationFrame(animateSpin);
                 } else {
-                    // SPIN COMPLETE
                     isSpinning = false;
                     document.getElementById('spinBtn').disabled = false;
-                    document.getElementById('spinBtn').classList.remove('opacity-50', 'cursor-not-allowed');
-
-                    // Play Fanfare Sound & Confetti
-                    playWinFanfare();
-                    triggerConfetti();
-
-                    // Show Result Modal
-                    showWinnerModal(winningPrize);
+                    onLocalSpinFinished(targetIndex);
                 }
             }
 
             requestAnimationFrame(animateSpin);
         };
 
-        // CONFETTI EFFECT
-        function triggerConfetti() {
-            if (typeof confetti === 'function') {
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
+        function onLocalSpinFinished(winnerIndex) {
+            const winner = wheelItems[winnerIndex];
+            playFanfareSound();
+            triggerConfetti();
+
+            const newHistory = [{
+                winner: winner,
+                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+            }, ...winnerHistory];
+
+            let updatedItems = [...wheelItems];
+            if (autoRemove) {
+                updatedItems.splice(winnerIndex, 1);
             }
+
+            // Sync result to cloud
+            saveRoomDataToCloud({
+                items: updatedItems,
+                history: newHistory
+            });
+
+            document.getElementById('winnerTitle').innerText = winner;
+            const modal = document.getElementById('winnerModal');
+            const modalContent = document.getElementById('winnerModalContent');
+            
+            if (autoRemove) {
+                document.getElementById('modalRemoveBtn').classList.add('hidden');
+            } else {
+                document.getElementById('modalRemoveBtn').classList.remove('hidden');
+            }
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-90');
+            modalContent.classList.add('scale-100');
         }
 
-        // WINNER MODAL CONTROLS
-        function showWinnerModal(prize) {
-            document.getElementById('winnerTitle').textContent = prize.name;
-            document.getElementById('winnerDesc').textContent = deductStockOnWin 
-                ? 'ระบบได้หักจำนวนรางวัลออกจากคลังกลางเรียบร้อยแล้ว' 
-                : 'โหมดหมุนได้เรื่อยๆ (สต็อกไม่ถูกหัก)';
-
-            const modal = document.getElementById('winnerModal');
-            const card = document.getElementById('winnerModalCard');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                card.classList.remove('scale-95');
-                card.classList.add('scale-100');
-            }, 10);
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
         }
 
         window.closeWinnerModal = function() {
             const modal = document.getElementById('winnerModal');
-            modal.classList.add('hidden');
+            const modalContent = document.getElementById('winnerModalContent');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-90');
         };
 
-        // ADMIN CONTROLS
-        window.openAdminModal = function() {
-            document.getElementById('adminModal').classList.remove('hidden');
-        };
-
-        window.closeAdminModal = function() {
-            document.getElementById('adminModal').classList.add('hidden');
-        };
-
-        window.openGuideModal = function() {
-            document.getElementById('guideModal').classList.remove('hidden');
-        };
-
-        window.closeGuideModal = function() {
-            document.getElementById('guideModal').classList.add('hidden');
-        };
-
-        window.toggleSound = function() {
-            soundEnabled = !soundEnabled;
-            const icon = document.getElementById('soundIcon');
-            if (soundEnabled) {
-                icon.className = "fa-solid fa-volume-high text-lg text-emerald-400";
-            } else {
-                icon.className = "fa-solid fa-volume-xmark text-lg text-rose-400";
+        window.confirmRemoveWinner = function() {
+            if (lastWinnerIndex < 0 || lastWinnerIndex >= wheelItems.length) {
+                closeWinnerModal();
+                return;
             }
+            let updatedItems = [...wheelItems];
+            updatedItems.splice(lastWinnerIndex, 1);
+            saveRoomDataToCloud({ items: updatedItems });
+            closeWinnerModal();
         };
 
-        window.toggleDeductStock = function(checked) {
-            saveConfigToCloud([...prizes], checked);
+        window.handleTextareaChange = function() {
+            const val = document.getElementById('itemsTextarea').value;
+            const lines = val.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            saveRoomDataToCloud({ items: lines });
         };
 
-        window.handleAddPrize = function(e) {
-            e.preventDefault();
-            const name = document.getElementById('newPrizeName').value.trim();
-            const stock = parseInt(document.getElementById('newPrizeStock').value) || 1;
-            const color = document.getElementById('newPrizeColor').value;
-
-            if (!name) return;
-
-            const newPrize = {
-                id: Date.now().toString(),
-                name: name,
-                stock: stock,
-                color: color
-            };
-
-            const updated = [...prizes, newPrize];
-            saveConfigToCloud(updated, deductStockOnWin);
-
-            document.getElementById('newPrizeName').value = '';
-            document.getElementById('newPrizeStock').value = '5';
-        };
-
-        window.deletePrize = function(index) {
-            const updated = [...prizes];
+        window.removeItemByIndex = function(index) {
+            if (isSpinning) return;
+            let updated = [...wheelItems];
             updated.splice(index, 1);
-            saveConfigToCloud(updated, deductStockOnWin);
+            saveRoomDataToCloud({ items: updated });
         };
 
-        window.updatePrizeStock = function(index, val) {
-            const count = parseInt(val) || 1;
-            const updated = [...prizes];
-            updated[index].stock = count;
-            saveConfigToCloud(updated, deductStockOnWin);
-        };
-
-        window.updatePrizeColor = function(index, color) {
-            const updated = [...prizes];
-            updated[index].color = color;
-            saveConfigToCloud(updated, deductStockOnWin);
-        };
-
-        window.resetDefaultPrizes = function() {
-            if (confirm('คุณต้องการรีเซ็ตรายการรางวัลกลับเป็นค่าเริ่มต้นหรือไม่?')) {
-                saveConfigToCloud([...defaultPrizes], true);
+        window.shuffleItems = function() {
+            if (isSpinning || wheelItems.length === 0) return;
+            let shuffled = [...wheelItems];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
+            saveRoomDataToCloud({ items: shuffled });
+        };
+
+        window.resetItemsDefault = function() {
+            if (isSpinning) return;
+            const defaultItems = ["รางวัลที่ 1: iPhone 16 Pro", "รางวัลที่ 2: iPad Air", "รางวัลที่ 3: AirPods Max", "บัตรของขวัญ 1,000 บาท", "บัตรของขวัญ 500 บาท", "แก้วน้ำส่วนตัว", "คูปองส่วนลด 20%", "โชคดีครั้งหน้า"];
+            saveRoomDataToCloud({ items: defaultItems });
+        };
+
+        window.toggleAutoRemove = function() {
+            const checked = document.getElementById('autoRemoveToggle').checked;
+            saveRoomDataToCloud({ autoRemove: checked });
+        };
+
+        window.clearHistory = function() {
+            saveRoomDataToCloud({ history: [] });
+        };
+
+        window.switchRightTab = function(tab) {
+            const editContent = document.getElementById('tabEditContent');
+            const listContent = document.getElementById('tabListContent');
+            const editBtn = document.getElementById('tabEditBtn');
+            const listBtn = document.getElementById('tabListBtn');
+
+            if (tab === 'edit') {
+                editContent.classList.remove('hidden');
+                listContent.classList.add('hidden');
+                editBtn.className = "py-2.5 px-3 border-b-2 border-pink-500 text-pink-400 font-bold flex items-center gap-1.5 focus:outline-none";
+                listBtn.className = "py-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 focus:outline-none";
+            } else {
+                editContent.classList.add('hidden');
+                listContent.classList.remove('hidden');
+                editBtn.className = "py-2.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 focus:outline-none";
+                listBtn.className = "py-2.5 px-3 border-b-2 border-pink-500 text-pink-400 font-bold flex items-center gap-1.5 focus:outline-none";
+            }
+        };
+
+        function renderRemainingListUI() {
+            const container = document.getElementById('remainingItemsList');
+            if (wheelItems.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs italic">ไม่มีรายการรางวัลคงเหลือในระบบ</div>`;
+                return;
+            }
+            container.innerHTML = wheelItems.map((item, idx) => `
+                <div class="flex items-center justify-between bg-slate-950/70 p-2.5 rounded-xl border border-slate-800 text-xs group">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${sliceColors[idx % sliceColors.length]}"></span>
+                        <span class="font-medium text-slate-200 truncate">${escapeHtml(item)}</span>
+                    </div>
+                    <button onclick="removeItemByIndex(${idx})" title="ลบรายการนี้ออกจากระบบ" class="text-slate-500 hover:text-rose-400 opacity-80 group-hover:opacity-100 transition p-1">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function renderHistoryUI() {
+            const container = document.getElementById('historyContainer');
+            if (winnerHistory.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs italic">ยังไม่มีประวัติการได้รับรางวัล</div>`;
+                return;
+            }
+            container.innerHTML = winnerHistory.map((item, idx) => `
+                <div class="flex items-center justify-between bg-slate-950/70 p-2.5 rounded-xl border border-slate-800 text-xs">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-[10px] flex-shrink-0">${idx + 1}</span>
+                        <span class="font-medium text-slate-200 truncate">${escapeHtml(item.winner)}</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono ml-2 flex-shrink-0">${item.time}</span>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        window.promptJoinRoom = function() {
+            const newRoom = prompt("กรอกชื่อห้องที่ต้องการสร้างหรือเข้าร่วม (ตัวอักษรภาษาอังกฤษ/ตัวเลข):", currentRoomId);
+            if (newRoom && newRoom.trim() !== '') {
+                const cleanRoom = newRoom.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+                if (cleanRoom) {
+                    const newUrl = `${window.location.pathname}?room=${cleanRoom}`;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+                    currentRoomId = cleanRoom;
+                    document.getElementById('currentRoomDisplay').innerText = currentRoomId;
+                    subscribeToRoomData();
+                }
+            }
+        };
+
+        window.copyRoomLink = function() {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomId}`;
+            const tempInput = document.createElement("input");
+            tempInput.value = shareUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-6 right-6 bg-emerald-600 text-white text-xs px-4 py-2.5 rounded-2xl shadow-2xl z-50 flex items-center gap-2 animate-bounce';
+            toast.innerHTML = `<i class="fa-solid fa-check"></i> <span>คัดลอกลิงก์ห้อง ${currentRoomId} แล้ว!</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
         };
     </script>
 </body>
