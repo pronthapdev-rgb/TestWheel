@@ -287,16 +287,15 @@
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global Firebase Configuration
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config)
-            : {
-                apiKey: "AIzaSyDemoConfigKeyForWheelAppDoc",
-                authDomain: "demo-wheel-app.firebaseapp.com",
-                projectId: "demo-wheel-app",
-                storageBucket: "demo-wheel-app.appspot.com",
-                messagingSenderId: "1234567890",
-                appId: "1:1234567890:web:abcdef123456"
-            };
+        const firebaseConfig = {
+            apiKey: "AIzaSyDSoQ486M1N0o3ZYx0N06gueNKYL8KaPcU",
+            authDomain: "fir-wheel-app.firebaseapp.com",
+            projectId: "fir-wheel-app",
+            storageBucket: "fir-wheel-app.firebasestorage.app",
+            messagingSenderId: "478602321220",
+            appId: "1:478602321220:web:63ab43008cde5252cb0b11",
+            measurementId: "G-0Y1535RLEN"
+        };
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'lucky-wheel-realtime';
         
