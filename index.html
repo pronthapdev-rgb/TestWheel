@@ -187,6 +187,28 @@
         </div>
     </div>
 
+    <!-- OUT OF STOCK MODAL -->
+    <div id="outOfStockModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300">
+        <div class="glass-modal max-w-sm w-full rounded-3xl p-6 text-center shadow-2xl border border-rose-500/30 transform scale-95 transition-all" id="outOfStockModalCard">
+            <div class="w-20 h-20 bg-gradient-to-tr from-rose-500 to-slate-700 rounded-full mx-auto flex items-center justify-center shadow-lg shadow-rose-500/30 mb-4">
+                <i class="fa-solid fa-box-open text-3xl text-white"></i>
+            </div>
+            <h3 class="text-sm font-semibold text-rose-400 tracking-wider uppercase mb-1">ขออภัยด้วยนะคะ/ครับ</h3>
+            <h2 class="text-2xl font-extrabold text-white mb-2">ของรางวัลหมดแล้ว!</h2>
+            <p class="text-sm text-slate-300 mb-6 bg-slate-900/60 py-2 px-3 rounded-xl border border-slate-800">
+                ขณะนี้ของรางวัลในสต็อกหมดเรียบร้อยแล้ว กรุณาติดต่อแอดมินหรือเพิ่มจำนวนรางวัลในระบบ
+            </p>
+            <div class="flex flex-col gap-2">
+                <button onclick="closeOutOfStockModal(); openAdminModal();" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-2xl shadow-lg transition-all active:scale-95">
+                    <i class="fa-solid fa-gear mr-1.5"></i> ไปที่หน้าจัดการรางวัล
+                </button>
+                <button onclick="closeOutOfStockModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-2xl transition-all">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ADMIN / MANAGEMENT MODAL -->
     <div id="adminModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-all duration-300 overflow-y-auto">
         <div class="glass-modal max-w-2xl w-full rounded-3xl p-6 shadow-2xl border border-indigo-500/30 my-8">
@@ -684,7 +706,8 @@
         window.spinWheel = async function() {
             if (isSpinning) return;
             if (prizes.length === 0) {
-                alert('ยังไม่มีรายการรางวัลในระบบ');
+                //alert('ยังไม่มีรายการรางวัลในระบบ');
+                showOutOfStockModal();
                 return;
             }
 
@@ -712,9 +735,18 @@
                             if (p.stock > 0) candidateIndices.push(idx);
                         });
 
+                        // if (candidateIndices.length === 0) {
+                        //     winningIndex = Math.floor(Math.random() * currentPrizes.length);
+                        //     winningPrize = currentPrizes[winningIndex];
+                        //     return;
+                        // }
+
+
                         if (candidateIndices.length === 0) {
-                            winningIndex = Math.floor(Math.random() * currentPrizes.length);
-                            winningPrize = currentPrizes[winningIndex];
+                            isSpinning = false;
+                            document.getElementById('spinBtn').disabled = false;
+                            document.getElementById('spinBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+                            showOutOfStockModal();
                             return;
                         }
 
@@ -754,6 +786,7 @@
                 isSpinning = false;
                 document.getElementById('spinBtn').disabled = false;
                 document.getElementById('spinBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+                showOutOfStockModal();
                 return;
             }
 
@@ -845,6 +878,22 @@
 
         window.closeWinnerModal = function() {
             const modal = document.getElementById('winnerModal');
+            modal.classList.add('hidden');
+        };
+
+        // OUT OF STOCK MODAL CONTROLS
+        function showOutOfStockModal() {
+            const modal = document.getElementById('outOfStockModal');
+            const card = document.getElementById('outOfStockModalCard');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            }, 10);
+        }
+
+        window.closeOutOfStockModal = function() {
+            const modal = document.getElementById('outOfStockModal');
             modal.classList.add('hidden');
         };
 
