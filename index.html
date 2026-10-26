@@ -709,7 +709,7 @@
                         // Select winner randomly based on remaining stock
                         const candidateIndices = [];
                         currentPrizes.forEach((p, idx) => {
-                            if (p.stock >= 0) candidateIndices.push(idx);
+                            if (p.stock > 0) candidateIndices.push(idx);
                         });
 
                         if (candidateIndices.length === 0) {
