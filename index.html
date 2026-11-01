@@ -628,13 +628,7 @@
                 const displayName = prize.name.length > 18 ? prize.name.substring(0, 16) + '...' : prize.name;
                 const textDistance = radius - (radius * 0.12);
                 
-                ctx.fillText(displayName, textDistance, 0);
-
-                if (deductStockOnWin && prize.stock !== undefined) {
-                    ctx.font = `${Math.max(11, fontSize - 4)}px Kanit`;
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
-                    ctx.fillText(`(เหลือ ${prize.stock})`, textDistance, fontSize + 3);
-                }
+                ctx.fillText(displayName, textDistance, 0); 
 
                 ctx.restore();
             });
